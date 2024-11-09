@@ -1,0 +1,12 @@
+[package]
+name = "MyMusicApp"
+version = "0.1.0"
+authors = ["Zeus, UnNut, titz"]
+
+[dependencies]
+AptosFramework = { git = "https://github.com/aptos-labs/aptos-core.git", rev = "mainnet", subdir = "aptos-move/framework/aptos-framework" }
+MoveStdlib = { git = "https://github.com/aptos-labs/aptos-core.git", rev = "mainnet", subdir = "aptos-move/framework/move-stdlib" }
+
+[addresses]
+AptosFramework = "0x1"
+MyMusicApp = "0x2"
