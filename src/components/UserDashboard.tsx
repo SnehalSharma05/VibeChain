@@ -65,10 +65,10 @@ const Icons = {
       />
     </>
   ),
-  settings: () => (
+  profile: () => (
     <path
       fillRule="evenodd"
-      d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z"
+      d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
       clipRule="evenodd"
     />
   ),
@@ -556,17 +556,23 @@ function SidebarItem({
 
 function SidebarLeft() {
   const [activeSection, setActiveSection] = useState("trending");
-
   useEffect(() => {
     const handleScroll = () => {
-      const sections = ["trending", "market", "dashboard", "settings"];
-      const scrollPosition = window.scrollY;
+      const sections = ["trending", "market", "dashboard", "profile"];
+      const scrollPosition = window.scrollY + window.innerHeight;
+      const documentHeight = document.documentElement.scrollHeight;
+
+      // Check if we're at the bottom of the page
+      if (scrollPosition >= documentHeight - 50) {
+        setActiveSection("profile"); // Highlight last section
+        return;
+      }
 
       sections.forEach(section => {
         const element = document.getElementById(section);
         if (element) {
           const { offsetTop, offsetHeight } = element;
-          if (scrollPosition >= offsetTop && scrollPosition < offsetTop + offsetHeight) {
+          if (window.scrollY >= offsetTop && window.scrollY < offsetTop + offsetHeight) {
             setActiveSection(section);
           }
         }
@@ -576,11 +582,10 @@ function SidebarLeft() {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
-
   return (
     <div className="hidden lg:flex h-screen flex-col justify-between w-48 fixed left-0 top-0 bottom-0 pt-24">
       <ul className="space-y-8">
-        {["trending", "market", "dashboard", "settings"].map((key, index) => (
+        {["trending", "market", "dashboard", "profile"].map((key, index) => (
           <SidebarItem
             key={key}
             text={key as keyof typeof Icons}
@@ -593,20 +598,7 @@ function SidebarLeft() {
           />
         ))}
       </ul>
-      <div className="pb-5 px-4">
-        <hr className="mb-5 text-zinc-700" />
-        <button
-          onClick={() => document.getElementById('profile')?.scrollIntoView({ behavior: 'smooth' })}
-          className="py-2 flex items-center text-zinc-500 hover:text-white transition-colors w-full"
-        >
-          <span className="bg-zinc-800 w-8 h-8 grid place-items-center mr-2 rounded-md">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
-            </svg>
-          </span>
-          Profile
-        </button>
-      </div>
+
     </div>
   );
 }
@@ -658,7 +650,6 @@ export default function MainBody() {
             <div id="trending"><Content /></div>
             <div id="market"><Items walletAddress={walletAddress} /></div>
             <div id="dashboard"><ArtistDashboard onUpload={handleAction} /></div>
-            <div id="settings">{/* Your settings component */}</div>
             <div id="profile"><ProfileSection /></div>
           </div>
           <SidebarRight />
