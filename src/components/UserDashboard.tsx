@@ -8,13 +8,13 @@ import {
 } from "../songListManager";
 // import { WalletSelector } from "./WalletSelector";
 import "./Items";
-import "./UserDashboard.css"; // Create this file
 import { UploadModal } from "./UploadModal";
 import { ArtistDashboard } from "./ArtistDashboard";
 import { ProfileSection } from "./ProfileSection";
 import MySongs from "./MySongs";
 import { LoadingScreen } from "./LoadingScreen";
 import ParticleBanner from "./Header";
+import AllSongs from "./AllSongs";
 declare global {
   interface Window {
     petra: any;
@@ -725,6 +725,7 @@ export default function MainBody() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [walletAddress, setWalletAddress] = useState<string>("");
   const [mySongs, setMySongs] = useState([]);
+  const [allSongs, setAllSongs] = useState([]);
   const [buyableSongs, setBuyableSongs] = useState([]);
   const [artistStats, setArtistStats] = useState<ArtistStats>({
     totalPlays: 0,
@@ -740,6 +741,7 @@ export default function MainBody() {
         getMySongs(address),
         getBuyableSongs(address),
         getArtistStats(address),
+        getSonglist(),
       ]);
 
     setMySongs(fetchedMySongs);
@@ -812,7 +814,7 @@ export default function MainBody() {
           <div className="flex flex-1">
             <div className="grow">
               <div id="trending">
-                <Content buyableSongs={buyableSongs} />
+                <AllSongs />
               </div>
               <div id="market">
                 <Items walletAddress={walletAddress} songs={buyableSongs} />
