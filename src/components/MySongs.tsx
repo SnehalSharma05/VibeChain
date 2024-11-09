@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { ListModal } from "./List";
 import { UpdatePriceModal } from "./UpdatePrice";
 import { getMySongs } from "../songListManager";
-import { userAddress, setUserAddress } from './UserDashboard';
+import { userAddress, setUserAddress } from "./UserDashboard";
 export default function MySongs({ songs }: { songs: any[] }) {
   const [selectedSong, setSelectedSong] = useState<any>(null);
   const [isListModalOpen, setIsListModalOpen] = useState(false);
@@ -25,7 +25,10 @@ export default function MySongs({ songs }: { songs: any[] }) {
       <h1 className="text-3xl font-bold mb-8">My Songs Collection</h1>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {songs.map((song) => (
-          <div key={song.ipfs_url} className="bg-zinc-800 rounded-lg p-6 shadow-lg hover:shadow-xl transition-all">
+          <div
+            key={song.ipfs_url}
+            className="bg-zinc-800 rounded-lg p-6 shadow-lg hover:shadow-xl transition-all"
+          >
             <div className="bg-zinc-800 rounded-lg p-6">
               <div
                 className="w-full h-48 bg-cover bg-center rounded-lg mb-4"
@@ -49,7 +52,9 @@ export default function MySongs({ songs }: { songs: any[] }) {
             <button
               onClick={() => {
                 setSelectedSong(song);
-                song.buyable ? setIsUpdateModalOpen(true) : setIsListModalOpen(true);
+                song.buyable
+                  ? setIsUpdateModalOpen(true)
+                  : setIsListModalOpen(true);
               }}
               className="w-full bg-gradient-to-tr from-fuchsia-600 to-violet-600 px-4 py-2 rounded-md font-semibold hover:opacity-90 transition-opacity"
             >
@@ -66,7 +71,7 @@ export default function MySongs({ songs }: { songs: any[] }) {
           setIsListModalOpen(false);
           setSelectedSong(null);
         }}
-        onSubmit={() => { handleList }}
+        onSubmit={handleList}
       />
 
       <UpdatePriceModal
@@ -77,7 +82,7 @@ export default function MySongs({ songs }: { songs: any[] }) {
           setIsUpdateModalOpen(false);
           setSelectedSong(null);
         }}
-        onSubmit={() => { handleUpdatePrice }}
+        onSubmit={handleUpdatePrice}
       />
     </div>
   );
