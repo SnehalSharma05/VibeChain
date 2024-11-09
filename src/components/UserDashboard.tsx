@@ -1,6 +1,8 @@
 import React, { useRef, useState, useEffect } from "react";
 import Countdown from "react-countdown";
+import { getArtistStats, getSonglist, getMySongs, getBuyableSongs } from "../songListManager";
 // import { WalletSelector } from "./WalletSelector";
+import './Items'
 import "./UserDashboard.css"; // Create this file
 import { UploadModal } from "./UploadModal";
 import { ArtistDashboard } from "./ArtistDashboard";
@@ -11,6 +13,12 @@ declare global {
     petra: any;
   }
 }
+export let userAddress: string = "";
+
+export const setUserAddress = (address: string) => {
+  userAddress = address;
+};
+
 // Add styled components for better organization
 const DashboardContainer = {
   height: "100vh",
@@ -170,6 +178,31 @@ const artists = [
 ];
 const App = () => {
   const [walletAddress, setWalletAddress] = useState<string>("");
+  const [buyableSongs, setBuyableSongs] = useState([]);
+  const connectWallet = async () => {
+    try {
+      const petra = window.petra;
+      if (petra) {
+        const response = await petra.connect();
+        setWalletAddress(response.address);
+        localStorage.setItem('walletAddress', response.address);
+
+        const fetchedBuyableSongs = await getBuyableSongs(response.address);
+        setBuyableSongs(fetchedBuyableSongs);
+      }
+    } catch (error) {
+      console.log("Petra wallet connection error:", error);
+    }
+  };
+  useEffect(() => {
+    const fetchBuyableSongs = async () => {
+      if (walletAddress) {
+        const songs = await getBuyableSongs(walletAddress);
+        setBuyableSongs(songs);
+      }
+    };
+    fetchBuyableSongs();
+  }, [walletAddress]);
 
   return (
     <>
@@ -177,18 +210,20 @@ const App = () => {
       <Header
         walletAddress={walletAddress}
         setWalletAddress={setWalletAddress}
+        connectWallet={connectWallet}
       />
       <div className="flex flex-col md:flex-row">
         <div className="w-48 hidden lg:block shrink-0" />
-        <div className=" grow ">
-          <Content />
-          <Items walletAddress={walletAddress} />
+        <div className="grow">
+          <Content buyableSongs={buyableSongs} />
+          <Items walletAddress={walletAddress} songs={buyableSongs} />
         </div>
         <SidebarRight />
       </div>
     </>
   );
 };
+
 
 function SidebarRight() {
   return (
@@ -290,7 +325,7 @@ function SidebarRight() {
   );
 }
 
-function Items({ walletAddress }: { walletAddress: string }) {
+function Items({ walletAddress, songs }: { walletAddress: string, songs: any[] }) {
   const handleButtonClick = (e: React.MouseEvent, action: string) => {
     if (!walletAddress) {
       e.preventDefault();
@@ -357,17 +392,15 @@ function ArtworkSelector({ text, index }: { text: string; index: number }) {
   return (
     <li className="">
       <button
-        className={` ${
-          index ? "text-zinc-500" : "text-fuchsia-600 underline font-bold"
-        }`}
+        className={` ${index ? "text-zinc-500" : "text-fuchsia-600 underline font-bold"
+          }`}
       >
         {text}
       </button>
     </li>
   );
 }
-
-function Content() {
+function Content({ buyableSongs }: ContentProps) {
   return (
     <div className="">
       <h1 className="text-2xl font-bold px-3 mt-3">Music Hub</h1>
@@ -400,35 +433,59 @@ function Content() {
           )}
         </ul>
       </div>
+
+      {/* Display buyable songs */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-4">
+        {buyableSongs.map((song) => (
+          <div key={song.ipfs_url} className="bg-zinc-800 rounded-lg p-4">
+            <img src={song.image_url} alt={song.name} className="w-full h-48 object-cover rounded-lg" />
+            <h3 className="text-lg font-bold mt-2">{song.name}</h3>
+            <p className="text-zinc-400">{song.genre}</p>
+            <p className="text-green-500">{song.price} VC</p>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
-
 interface HeaderProps {
   walletAddress: string;
   setWalletAddress: (address: string) => void;
+  connectWallet: () => Promise<void>;
 }
 
-function Header({ walletAddress, setWalletAddress }: HeaderProps) {
-  const connectWallet = async () => {
-    try {
-      const petra = window.petra;
-      if (petra) {
-        const response = await petra.connect();
-        setWalletAddress(response.address);
-        console.log("Connected account address:", response.address);
-      } else {
-        window.open("https://petra.app/", "_blank");
-      }
-    } catch (error) {
-      console.log("Petra wallet connection error:", error);
+interface ContentProps {
+  buyableSongs: any[];
+}
+
+interface ArtistStats {
+  totalPlays: number;
+  totalEarnings: number;
+  monthlyPlays: number;
+  monthlyEarnings: number;
+  topSongs: Array<{
+    title: string;
+    plays: number;
+    earnings: number;
+  }>;
+}
+
+function Header({ walletAddress, setWalletAddress, connectWallet }: HeaderProps) {
+  useEffect(() => {
+    // Check local storage on component mount
+    const savedAddress = localStorage.getItem('walletAddress');
+    if (savedAddress) {
+      setWalletAddress(savedAddress);
     }
-  };
+  }, []);
+
 
   const disconnectWallet = async () => {
     try {
       await window.petra.disconnect();
       setWalletAddress("");
+      // Clear from local storage
+      localStorage.removeItem('walletAddress');
       console.log("Wallet disconnected");
     } catch (error) {
       console.log("Disconnect error:", error);
@@ -546,14 +603,12 @@ function SidebarItem({
       )}
       <button
         onClick={onClick}
-        className={`pl-4 flex items-center capitalize w-full ${
-          isActive ? "text-white" : "text-zinc-500 hover:text-white"
-        } transition-colors`}
+        className={`pl-4 flex items-center capitalize w-full ${isActive ? "text-white" : "text-zinc-500 hover:text-white"
+          } transition-colors`}
       >
         <span
-          className={`w-8 h-8 grid place-items-center mr-2 rounded-md ${
-            isActive ? "bg-fuchsia-600" : "bg-zinc-800"
-          }`}
+          className={`w-8 h-8 grid place-items-center mr-2 rounded-md ${isActive ? "bg-fuchsia-600" : "bg-zinc-800"
+            }`}
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -646,6 +701,15 @@ function SidebarLeft() {
 export default function MainBody() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [walletAddress, setWalletAddress] = useState<string>("");
+  const [mySongs, setMySongs] = useState([]);
+  const [buyableSongs, setBuyableSongs] = useState([]);
+  const [artistStats, setArtistStats] = useState<ArtistStats>({
+    totalPlays: 0,
+    totalEarnings: 0,
+    monthlyPlays: 0,
+    monthlyEarnings: 0,
+    topSongs: []
+  });
 
   const handleAction = () => {
     if (!walletAddress) {
@@ -655,10 +719,59 @@ export default function MainBody() {
     setIsModalOpen(true);
   };
 
-  const handleUpload = (data: { name: string; price: string }) => {
+  const handleUpload = async (data: { name: string; price: string }) => {
     console.log("Upload track:", data);
     setIsModalOpen(false);
+    // Refresh data after upload
+    const fetchedMySongs = await getMySongs(walletAddress);
+    const fetchedBuyableSongs = await getBuyableSongs(walletAddress);
+    const fetchedArtistStats = await getArtistStats(walletAddress);
+
+    setMySongs(fetchedMySongs);
+    setBuyableSongs(fetchedBuyableSongs);
+    setArtistStats(fetchedArtistStats);
   };
+  const connectWallet = async () => {
+    try {
+      const petra = window.petra;
+      if (petra) {
+        const response = await petra.connect();
+        setWalletAddress(response.address);
+        localStorage.setItem('walletAddress', response.address);
+
+        // Fetch and set all data
+        const fetchedMySongs = await getMySongs(response.address);
+        const fetchedBuyableSongs = await getBuyableSongs(response.address);
+        const fetchedArtistStats = await getArtistStats(response.address);
+
+        setMySongs(fetchedMySongs);
+        setBuyableSongs(fetchedBuyableSongs);
+        setArtistStats(fetchedArtistStats);
+
+      }
+      else {
+        window.open("https://petra.app/", "_blank");
+      }
+    } catch (error) {
+      console.log("Petra wallet connection error:", error);
+    }
+  };
+  useEffect(() => {
+    const savedAddress = localStorage.getItem('walletAddress');
+    if (savedAddress) {
+      setWalletAddress(savedAddress);
+      const fetchData = async () => {
+        const fetchedMySongs = await getMySongs(savedAddress);
+        const fetchedBuyableSongs = await getBuyableSongs(savedAddress);
+        const fetchedArtistStats = await getArtistStats(savedAddress);
+
+        setMySongs(fetchedMySongs);
+        setBuyableSongs(fetchedBuyableSongs);
+        setArtistStats(fetchedArtistStats);
+      };
+      fetchData();
+    }
+  }, []);
 
   return (
     <div className="min-h-screen bg-zinc-900 flex">
@@ -668,20 +781,21 @@ export default function MainBody() {
         <Header
           walletAddress={walletAddress}
           setWalletAddress={setWalletAddress}
+          connectWallet={connectWallet}
         />
         <div className="flex flex-1">
           <div className="grow">
             <div id="trending">
-              <Content />
+              <Content buyableSongs={buyableSongs} />
             </div>
             <div id="market">
-              <Items walletAddress={walletAddress} />
+              <Items walletAddress={walletAddress} songs={buyableSongs} />
             </div>
             <div id="dashboard">
-              <ArtistDashboard onUpload={handleAction} />
+              <ArtistDashboard stats={artistStats} onUpload={handleAction} />
             </div>
             <div id="mysongs">
-              <MySongs />
+              <MySongs songs={mySongs} />
             </div>
             <div id="profile">
               <ProfileSection />

@@ -1,4 +1,5 @@
 import React, { useState, useRef } from "react";
+import { updateSonglist } from '../songListManager'
 interface UploadModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -23,8 +24,8 @@ export function UploadModal({ isOpen, onClose, onSubmit, walletAddress }: Upload
   const imageInputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
-
-  let globalMusicId = 0; // Global counter for unique IDs
+  let buyable = true;
+  //let globalMusicId = 0; // Global counter for unique IDs
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       setImageFile(e.target.files[0]);
@@ -67,33 +68,37 @@ export function UploadModal({ isOpen, onClose, onSubmit, walletAddress }: Upload
       const imageIpfsUrl = `https://gateway.pinata.cloud/ipfs/${imageData.IpfsHash}`;
 
       // Create metadata JSON
-      const metadata = {
+      const songDetails = {
         name,
-        description,
         genre,
-        artist_name: walletAddress,
+        buyable,
+        price,
+        artist_address: walletAddress,
+        owner_address: walletAddress,
         ipfs_url: mp3IpfsUrl,
         image_url: imageIpfsUrl,
         timestamp: Date.now()
       };
-
+      updateSonglist(songDetails);
+      console.log("songDetails:", songDetails);
+      //TODO
       // Upload metadata JSON with unique ID
-      const jsonBlob = new Blob([JSON.stringify(metadata)], { type: 'application/json' });
-      const jsonFormData = new FormData();
-      jsonFormData.append('file', jsonBlob);
-      jsonFormData.append('pinataMetadata', JSON.stringify({
-        name: `music_${globalMusicId}.json`
-      }));
+      // const jsonBlob = new Blob([JSON.stringify(metadata)], { type: 'application/json' });
+      // const jsonFormData = new FormData();
+      // jsonFormData.append('file', jsonBlob);
+      // jsonFormData.append('pinataMetadata', JSON.stringify({
+      //   name: `music_${globalMusicId}.json`
+      // }));
 
-      const jsonResponse = await fetch('https://api.pinata.cloud/pinning/pinFileToIPFS', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySW5mb3JtYXRpb24iOnsiaWQiOiIwZWJlNGYzMi0xMjJhLTQwMTktYmFkOC00N2RmMWIwNWNhZGYiLCJlbWFpbCI6InVubmF0aGNoaXR0aW1hbGxhQGdtYWlsLmNvbSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJwaW5fcG9saWN5Ijp7InJlZ2lvbnMiOlt7ImRlc2lyZWRSZXBsaWNhdGlvbkNvdW50IjoxLCJpZCI6IkZSQTEifSx7ImRlc2lyZWRSZXBsaWNhdGlvbkNvdW50IjoxLCJpZCI6Ik5ZQzEifV0sInZlcnNpb24iOjF9LCJtZmFfZW5hYmxlZCI6ZmFsc2UsInN0YXR1cyI6IkFDVElWRSJ9LCJhdXRoZW50aWNhdGlvblR5cGUiOiJzY29wZWRLZXkiLCJzY29wZWRLZXlLZXkiOiI0ODc1NGE4N2Y4NjZkNzQwOGZiMSIsInNjb3BlZEtleVNlY3JldCI6IjRiNjNjNDQyNjUwOGY2Njc0NzU4MjhlMmM0Y2MxZmZkMjU3NWM5Yzk3ODk0MmRlN2ZkOTgyNjM2ZGNiN2ExYTEiLCJleHAiOjE3NjI2NjU5NzZ9.2xjWie4o5Hyop8R7WQ8yZSaNXSNakMRlyTG0yDbVl1s`
-        },
-        body: jsonFormData
-      });
+      // const jsonResponse = await fetch('https://api.pinata.cloud/pinning/pinFileToIPFS', {
+      //   method: 'POST',
+      //   headers: {
+      //     'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySW5mb3JtYXRpb24iOnsiaWQiOiIwZWJlNGYzMi0xMjJhLTQwMTktYmFkOC00N2RmMWIwNWNhZGYiLCJlbWFpbCI6InVubmF0aGNoaXR0aW1hbGxhQGdtYWlsLmNvbSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJwaW5fcG9saWN5Ijp7InJlZ2lvbnMiOlt7ImRlc2lyZWRSZXBsaWNhdGlvbkNvdW50IjoxLCJpZCI6IkZSQTEifSx7ImRlc2lyZWRSZXBsaWNhdGlvbkNvdW50IjoxLCJpZCI6Ik5ZQzEifV0sInZlcnNpb24iOjF9LCJtZmFfZW5hYmxlZCI6ZmFsc2UsInN0YXR1cyI6IkFDVElWRSJ9LCJhdXRoZW50aWNhdGlvblR5cGUiOiJzY29wZWRLZXkiLCJzY29wZWRLZXlLZXkiOiI0ODc1NGE4N2Y4NjZkNzQwOGZiMSIsInNjb3BlZEtleVNlY3JldCI6IjRiNjNjNDQyNjUwOGY2Njc0NzU4MjhlMmM0Y2MxZmZkMjU3NWM5Yzk3ODk0MmRlN2ZkOTgyNjM2ZGNiN2ExYTEiLCJleHAiOjE3NjI2NjU5NzZ9.2xjWie4o5Hyop8R7WQ8yZSaNXSNakMRlyTG0yDbVl1s`
+      //   },
+      //   body: jsonFormData
+      // });
 
-      globalMusicId++; // Increment the global counter
+      //globalMusicId++; // Increment the global counter
 
       onSubmit({
         name,

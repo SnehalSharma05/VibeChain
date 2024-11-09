@@ -1,0 +1,13 @@
+[
+  {
+    "name": "track",
+    "genre": "rock",
+    "buyable": true,
+    "price": "2",
+    "artist_address": "0x51fe2516bd0dd6a4c5fc48946fa35fe9d6b6294d80c201c27c416d288657bbf3",
+    "owner_address": "0x51fe2516bd0dd6a4c5fc48946fa35fe9d6b6294d80c201c27c416d288657bbf3",
+    "ipfs_url": "https://gateway.pinata.cloud/ipfs/QmV89jSrxui9EC6QePgZTgPpCpicMsMVov5gpwtgd2Tp6D",
+    "image_url": "https://gateway.pinata.cloud/ipfs/QmexgBXJ87B7wMohfnKNL3n2fFaGumnBpZzZi5LJWi15PA",
+    "timestamp": 1731160714109
+  }
+]

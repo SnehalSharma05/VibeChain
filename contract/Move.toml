@@ -1,12 +1,9 @@
 [package]
-name = "MyMusicApp"
-version = "0.1.0"
-authors = ["Zeus, UnNut, titz"]
+name = "vibechain"
+version = "1.0.0"
 
 [dependencies]
-AptosFramework = { git = "https://github.com/aptos-labs/aptos-core.git", rev = "mainnet", subdir = "aptos-move/framework/aptos-framework" }
-MoveStdlib = { git = "https://github.com/aptos-labs/aptos-core.git", rev = "mainnet", subdir = "aptos-move/framework/move-stdlib" }
+AptosFramework = { git = "https://github.com/aptos-labs/aptos-core.git", subdir = "aptos-move/framework/aptos-framework/", rev = "main" }
 
 [addresses]
-AptosFramework = "0x1"
-MyMusicApp = "0x2"
+vibechain_addr = "0xe1bfa3409c18df4880b22966e58236bd897dc08ee458d7ba1ecc8f75af9a90de"
