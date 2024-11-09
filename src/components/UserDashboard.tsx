@@ -1,17 +1,15 @@
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { PetraWallet } from 'petra-plugin-wallet-adapter';
 import Countdown from "react-countdown";
 // import { WalletSelector } from "./WalletSelector";
 import "./UserDashboard.css"; // Create this file
 import { UploadModal } from "./UploadModal";
+import { ArtistDashboard } from "./ArtistDashboard";
+import { ProfileSection } from "./ProfileSection";
 declare global {
   interface Window {
     petra: any;
   }
-}
-// Add interface for ArtistDashboard props
-interface ArtistDashboardProps {
-  onUpload: () => void;
 }
 // Add styled components for better organization
 const DashboardContainer = {
@@ -164,22 +162,24 @@ const artists = [
   },
 ];
 const App = () => {
+  const [walletAddress, setWalletAddress] = useState<string>("");
+
   return (
     <>
       <SidebarLeft />
-      <Header />
-
+      <Header walletAddress={walletAddress} setWalletAddress={setWalletAddress} />
       <div className="flex flex-col md:flex-row">
         <div className="w-48 hidden lg:block shrink-0" />
         <div className=" grow ">
           <Content />
-          <Items />
+          <Items walletAddress={walletAddress} />
         </div>
         <SidebarRight />
       </div>
     </>
   );
 };
+
 
 function SidebarRight() {
   return (
@@ -213,24 +213,6 @@ function SidebarRight() {
             simple
           </p>
           <div className="bg-white w-full rounded-md h-12 text-gray-900 font-semibold mt-2">
-          <button 
-          onClick={async () => {
-            try {
-              const petra = window.petra;
-              if (petra) {
-                const response = await petra.connect();
-                console.log("Connected account address:", response.address);
-              } else {
-                window.open('https://petra.app/', '_blank');
-              }
-            } catch (error) {
-              console.log("Petra wallet connection error:", error);
-            }
-          }}
-          className="bg-white w-full rounded-md h-12 text-gray-900 font-semibold mt-2 hover:bg-gray-100 transition-colors"
-        >
-          {window.petra ? 'Connected to Petra Wallet' : 'Connect to Petra Wallet'}
-        </button>
           </div>
         </div>
         <div className="absolute left-0 right-0 top-0 z-0">
@@ -300,7 +282,15 @@ function SidebarRight() {
   );
 }
 
-function Items() {
+function Items({ walletAddress }: { walletAddress: string }) {
+  const handleButtonClick = (e: React.MouseEvent, action: string) => {
+    if (!walletAddress) {
+      e.preventDefault();
+      alert("Please connect your Petra wallet first");
+      return;
+    }
+    // Handle the action
+  };
   return (
     <ul className="p-1.5 flex flex-wrap">
       {items.map(({ key, artist, image, price, title }) => (
@@ -333,7 +323,7 @@ function Items() {
             </div>
             <div className="flex mt-2">
               <div className="p-3 w-1/2">
-                <button className="bg-gradient-to-tr from-fuchsia-600 to-violet-600  w-full h-12 rounded-md font-semibold">
+                <button onClick={(e) => handleButtonClick(e, 'play')} className="bg-gradient-to-tr from-fuchsia-600 to-violet-600  w-full h-12 rounded-md font-semibold">
                   Play Song
                 </button>
               </div>
@@ -356,9 +346,8 @@ function ArtworkSelector({ text, index }: { text: string; index: number }) {
   return (
     <li className="">
       <button
-        className={` ${
-          index ? "text-zinc-500" : "text-fuchsia-600 underline font-bold"
-        }`}
+        className={` ${index ? "text-zinc-500" : "text-fuchsia-600 underline font-bold"
+          }`}
       >
         {text}
       </button>
@@ -403,7 +392,37 @@ function Content() {
   );
 }
 
-function Header() {
+interface HeaderProps {
+  walletAddress: string;
+  setWalletAddress: (address: string) => void;
+}
+
+function Header({ walletAddress, setWalletAddress }: HeaderProps) {
+
+  const connectWallet = async () => {
+    try {
+      const petra = window.petra;
+      if (petra) {
+        const response = await petra.connect();
+        setWalletAddress(response.address);
+        console.log("Connected account address:", response.address);
+      } else {
+        window.open('https://petra.app/', '_blank');
+      }
+    } catch (error) {
+      console.log("Petra wallet connection error:", error);
+    }
+  };
+
+  const disconnectWallet = async () => {
+    try {
+      await window.petra.disconnect();
+      setWalletAddress("");
+      console.log("Wallet disconnected");
+    } catch (error) {
+      console.log("Disconnect error:", error);
+    }
+  };
   return (
     <div className="flex flex-wrap p-3 items-center sticky top-0 bg-zinc-900 h-fit md:h-16 z-30">
       <div className="flex items-center order-2 md:order-3 pl-0 md:pl-3">
@@ -420,11 +439,24 @@ function Header() {
             <div className="bg-red-500 w-full h-full rounded-full" />
           </div>
         </div>
-        <img
-          src="https://assets.codepen.io/3685267/nft-dashboard-pro-1.jpg"
-          alt="user"
-          className="w-10 h-10 rounded-full ml-4"
-        />
+        {walletAddress ? (
+          <div className="flex items-center ml-4">
+            <span className="text-sm">{`${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)}`}</span>
+            <button
+              onClick={disconnectWallet}
+              className="ml-2 px-2 py-1 bg-red-500 rounded-md text-sm hover:bg-red-600 transition-colors"
+            >
+              Logout
+            </button>
+          </div>
+        ) : (
+          <button
+            onClick={connectWallet}
+            className="ml-4 px-4 py-2 bg-gradient-to-tr from-fuchsia-600 to-violet-600 rounded-md"
+          >
+            Connect Petra Wallet
+          </button>
+        )}
         <svg
           xmlns="http://www.w3.org/2000/svg"
           className="h-7 w-7 ml-4"
@@ -485,25 +517,27 @@ function Header() {
 function SidebarItem({
   text,
   index,
+  isActive,
+  onClick
 }: {
   text: keyof typeof Icons;
   index: number;
+  isActive: boolean;
+  onClick: () => void;
 }) {
   return (
     <li className="relative">
-      {index === 1 ? (
+      {isActive && (
         <div className="absolute -left-1 top-0 bg-fuchsia-600 w-2 h-8 rounded-full" />
-      ) : null}
-      <a
-        href="#"
-        className={`pl-4 flex items-center capitalize ${
-          index === 1 ? "text-white" : "text-zinc-500"
-        }`}
+      )}
+      <button
+        onClick={onClick}
+        className={`pl-4 flex items-center capitalize w-full ${isActive ? "text-white" : "text-zinc-500 hover:text-white"
+          } transition-colors`}
       >
         <span
-          className={`bg-zinc-800 w-8 h-8 grid place-items-center mr-2 rounded-md ${
-            index === 1 ? "bg-fuchsia-600" : "bg-zinc-800"
-          }`}
+          className={`w-8 h-8 grid place-items-center mr-2 rounded-md ${isActive ? "bg-fuchsia-600" : "bg-zinc-800"
+            }`}
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -515,191 +549,129 @@ function SidebarItem({
           </svg>
         </span>
         {text}
-      </a>
+      </button>
     </li>
   );
 }
 
 function SidebarLeft() {
+  const [activeSection, setActiveSection] = useState("trending");
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const sections = ["trending", "market", "dashboard", "settings"];
+      const scrollPosition = window.scrollY;
+
+      sections.forEach(section => {
+        const element = document.getElementById(section);
+        if (element) {
+          const { offsetTop, offsetHeight } = element;
+          if (scrollPosition >= offsetTop && scrollPosition < offsetTop + offsetHeight) {
+            setActiveSection(section);
+          }
+        }
+      });
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   return (
     <div className="hidden lg:flex h-screen flex-col justify-between w-48 fixed left-0 top-0 bottom-0 pt-24">
       <ul className="space-y-8">
-        {[
-          "market",
-          "dashboard",
-          "favourites",
-          "trending",
-          "collection",
-          "wallet",
-          "settings",
-        ].map((key, index) => (
+        {["trending", "market", "dashboard", "settings"].map((key, index) => (
           <SidebarItem
             key={key}
             text={key as keyof typeof Icons}
             index={index}
+            isActive={activeSection === key}
+            onClick={() => {
+              const element = document.getElementById(key);
+              element?.scrollIntoView({ behavior: 'smooth' });
+            }}
           />
         ))}
       </ul>
-      <div className="pb-5  px-4">
+      <div className="pb-5 px-4">
         <hr className="mb-5 text-zinc-700" />
-        <a href="#" className="py-2 flex items-center  text-zinc-500">
+        <button
+          onClick={() => document.getElementById('profile')?.scrollIntoView({ behavior: 'smooth' })}
+          className="py-2 flex items-center text-zinc-500 hover:text-white transition-colors w-full"
+        >
           <span className="bg-zinc-800 w-8 h-8 grid place-items-center mr-2 rounded-md">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-            >
-              {Icons.logout()}
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
             </svg>
           </span>
-          Logout
-        </a>
-      </div>
-    </div>
-  );
-}
-const artistStats = {
-  totalPlays: 1234567,
-  totalEarnings: 45.32,
-  monthlyPlays: 123456,
-  monthlyEarnings: 12.34,
-  topSongs: [
-    { title: "Ethereal Melodies", plays: 500000, earnings: 15.5 },
-    { title: "Digital Dreams", plays: 300000, earnings: 12.3 },
-    { title: "Crypto Beats", plays: 250000, earnings: 8.7 },
-  ],
-};
-
-export function ArtistDashboard({ onUpload }: ArtistDashboardProps) {
-  return (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-2xl font-bold">Artist Dashboard</h1>
-        <button
-          onClick={onUpload}
-          className="bg-gradient-to-tr from-fuchsia-600 to-violet-600 px-6 py-2 rounded-md font-semibold"
-        >
-          Release New Track
+          Profile
         </button>
       </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        <div className="bg-zinc-800 rounded-lg p-4 shadow-lg">
-          <h3 className="text-zinc-400 text-sm">Total Plays</h3>
-          <p className="text-2xl font-bold mt-2">
-            {artistStats.totalPlays.toLocaleString()}
-          </p>
-        </div>
-        <div className="bg-zinc-800 rounded-lg p-4 shadow-lg">
-          <h3 className="text-zinc-400 text-sm">Total Earnings</h3>
-          <p className="text-2xl font-bold mt-2">
-            {artistStats.totalEarnings} VC
-          </p>
-        </div>
-        <div className="bg-zinc-800 rounded-lg p-4 shadow-lg">
-          <h3 className="text-zinc-400 text-sm">Monthly Plays</h3>
-          <p className="text-2xl font-bold mt-2">
-            {artistStats.monthlyPlays.toLocaleString()}
-          </p>
-        </div>
-        <div className="bg-zinc-800 rounded-lg p-4 shadow-lg">
-          <h3 className="text-zinc-400 text-sm">Monthly Earnings</h3>
-          <p className="text-2xl font-bold mt-2">
-            {artistStats.monthlyEarnings} VC
-          </p>
-        </div>
-      </div>
-
-      <div className="bg-zinc-800 rounded-lg p-6 shadow-lg">
-        <h2 className="text-xl font-semibold mb-4">Top Performing Songs</h2>
-        <div className="space-y-4">
-          {artistStats.topSongs.map((song, index) => (
-            <div
-              key={index}
-              className="flex items-center justify-between p-4 bg-zinc-700 rounded-md"
-            >
-              <div className="flex items-center">
-                <span className="text-lg font-semibold mr-4">#{index + 1}</span>
-                <div>
-                  <h3 className="font-semibold">{song.title}</h3>
-                  <p className="text-sm text-zinc-400">
-                    {song.plays.toLocaleString()} plays
-                  </p>
-                </div>
-              </div>
-              <div className="text-right">
-                <p className="font-semibold">{song.earnings} VC</p>
-                <p className="text-sm text-zinc-400">earnings</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div className="mt-8 bg-gradient-to-tr from-fuchsia-600 to-violet-600 rounded-lg p-6 relative overflow-hidden">
-        <div className="relative z-10">
-          <h2 className="text-xl font-bold mb-2">
-            Ready to Drop Your Next Hit?
-          </h2>
-          <p className="text-white/70 mb-4">
-            Upload your new track and start earning VC coins
-          </p>
-          <button className="bg-white text-gray-900 px-6 py-2 rounded-md font-semibold">
-            Upload Track
-          </button>
-        </div>
-        <div className="absolute right-0 top-0 opacity-10">
-          <svg className="w-48 h-48" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z" />
-          </svg>
-        </div>
-      </div>
     </div>
   );
 }
 
-export default function MainBody() {
-  return (
-    <>
-      <SidebarLeft />
-      <Header />
-      <div className="flex flex-col md:flex-row">
-        <div className="w-48 hidden lg:block shrink-0" />
-        <div className=" grow ">
-          <Content />
-          <Items />
-        </div>
-        <SidebarRight />
-      </div>
-    </>
-  );
-}
 
 // export default function MainBody() {
-//   const [isModalOpen, setIsModalOpen] = useState(false);
-
-//   const handleUpload = (data: { name: string; price: string }) => {
-//     console.log("Upload track:", data);
-//     setIsModalOpen(false);
-//   };
-
 //   return (
 //     <>
 //       <SidebarLeft />
 //       <Header />
 //       <div className="flex flex-col md:flex-row">
 //         <div className="w-48 hidden lg:block shrink-0" />
-//         <div className="grow">
-//           <ArtistDashboard onUpload={() => setIsModalOpen(true)} />
+//         <div className=" grow ">
+//           <Content />
+//           <Items />
 //         </div>
 //         <SidebarRight />
 //       </div>
-//       <UploadModal
-//         isOpen={isModalOpen}
-//         onClose={() => setIsModalOpen(false)}
-//         onSubmit={handleUpload}
-//       />
 //     </>
 //   );
 // }
+
+export default function MainBody() {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [walletAddress, setWalletAddress] = useState<string>("");
+
+  const handleAction = () => {
+    if (!walletAddress) {
+      alert("Please connect your Petra wallet first");
+      return;
+    }
+    setIsModalOpen(true);
+  };
+
+  const handleUpload = (data: { name: string; price: string }) => {
+    console.log("Upload track:", data);
+    setIsModalOpen(false);
+  };
+
+  return (
+    <div className="min-h-screen bg-zinc-900 flex">
+      <SidebarLeft />
+      <div className="w-48 hidden lg:block shrink-0" />
+      <div className="flex-1 flex flex-col">
+        <Header walletAddress={walletAddress} setWalletAddress={setWalletAddress} />
+        <div className="flex flex-1">
+
+          <div className="grow">
+            <div id="trending"><Content /></div>
+            <div id="market"><Items walletAddress={walletAddress} /></div>
+            <div id="dashboard"><ArtistDashboard onUpload={handleAction} /></div>
+            <div id="settings">{/* Your settings component */}</div>
+            <div id="profile"><ProfileSection /></div>
+          </div>
+          <SidebarRight />
+        </div>
+      </div>
+      <UploadModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSubmit={handleUpload}
+        walletAddress={walletAddress}
+      />
+
+    </div>
+  );
+}
+
