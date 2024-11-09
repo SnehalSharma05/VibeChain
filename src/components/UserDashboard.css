@@ -1,0 +1,38 @@
+.dashboard-container {
+    background-color: #09090b;
+    color: white;
+    min-height: 100vh;
+  }
+  
+  .sidebar-scroll {
+    max-height: calc(100vh - 4rem);
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #4c1d95 #09090b;
+  }
+  
+  .main-content {
+    height: 100vh;
+    overflow-y: auto;
+  }
+  
+  .gradient-text {
+    background: linear-gradient(to right, #818cf8, #c084fc);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  
+  /* Custom scrollbar styling */
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    background: #09090b;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    background: #4c1d95;
+    border-radius: 4px;
+  }
+  

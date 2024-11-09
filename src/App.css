@@ -1,0 +1,23 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  background-color: #18181b;
+  color: white;
+}
+
+.App {
+  min-height: 100vh;
+  background-color: #18181b;
+}
+
+.main-content {
+  height: 100vh;
+  overflow-y: auto;
+}
+
+.sidebar-right {
+  max-height: calc(100vh - 4rem);
+  overflow-y: auto;
+}
