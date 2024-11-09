@@ -1,11 +1,11 @@
 import React, { useRef, useState, useEffect } from "react";
-import { PetraWallet } from 'petra-plugin-wallet-adapter';
 import Countdown from "react-countdown";
 // import { WalletSelector } from "./WalletSelector";
 import "./UserDashboard.css"; // Create this file
 import { UploadModal } from "./UploadModal";
 import { ArtistDashboard } from "./ArtistDashboard";
 import { ProfileSection } from "./ProfileSection";
+import MySongs from "./MySongs";
 declare global {
   interface Window {
     petra: any;
@@ -25,10 +25,10 @@ const SidebarStyles = {
 };
 
 const getAptosWallet = () => {
-  if ('aptos' in window) {
+  if ("aptos" in window) {
     return window.aptos;
   } else {
-    window.open('https://petra.app/', `_blank`);
+    window.open("https://petra.app/", `_blank`);
   }
 };
 const Icons = {
@@ -54,6 +54,13 @@ const Icons = {
   ),
   collection: () => (
     <path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z" />
+  ),
+  mysongs: () => (
+    <path
+      d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
   ),
   wallet: () => (
     <>
@@ -167,7 +174,10 @@ const App = () => {
   return (
     <>
       <SidebarLeft />
-      <Header walletAddress={walletAddress} setWalletAddress={setWalletAddress} />
+      <Header
+        walletAddress={walletAddress}
+        setWalletAddress={setWalletAddress}
+      />
       <div className="flex flex-col md:flex-row">
         <div className="w-48 hidden lg:block shrink-0" />
         <div className=" grow ">
@@ -179,7 +189,6 @@ const App = () => {
     </>
   );
 };
-
 
 function SidebarRight() {
   return (
@@ -212,8 +221,7 @@ function SidebarRight() {
             you can buy a collection of artwork with ethereum very easy and
             simple
           </p>
-          <div className="bg-white w-full rounded-md h-12 text-gray-900 font-semibold mt-2">
-          </div>
+          <div className="bg-white w-full rounded-md h-12 text-gray-900 font-semibold mt-2"></div>
         </div>
         <div className="absolute left-0 right-0 top-0 z-0">
           <svg
@@ -323,7 +331,10 @@ function Items({ walletAddress }: { walletAddress: string }) {
             </div>
             <div className="flex mt-2">
               <div className="p-3 w-1/2">
-                <button onClick={(e) => handleButtonClick(e, 'play')} className="bg-gradient-to-tr from-fuchsia-600 to-violet-600  w-full h-12 rounded-md font-semibold">
+                <button
+                  onClick={(e) => handleButtonClick(e, "play")}
+                  className="bg-gradient-to-tr from-fuchsia-600 to-violet-600  w-full h-12 rounded-md font-semibold"
+                >
                   Play Song
                 </button>
               </div>
@@ -346,8 +357,9 @@ function ArtworkSelector({ text, index }: { text: string; index: number }) {
   return (
     <li className="">
       <button
-        className={` ${index ? "text-zinc-500" : "text-fuchsia-600 underline font-bold"
-          }`}
+        className={` ${
+          index ? "text-zinc-500" : "text-fuchsia-600 underline font-bold"
+        }`}
       >
         {text}
       </button>
@@ -398,7 +410,6 @@ interface HeaderProps {
 }
 
 function Header({ walletAddress, setWalletAddress }: HeaderProps) {
-
   const connectWallet = async () => {
     try {
       const petra = window.petra;
@@ -407,7 +418,7 @@ function Header({ walletAddress, setWalletAddress }: HeaderProps) {
         setWalletAddress(response.address);
         console.log("Connected account address:", response.address);
       } else {
-        window.open('https://petra.app/', '_blank');
+        window.open("https://petra.app/", "_blank");
       }
     } catch (error) {
       console.log("Petra wallet connection error:", error);
@@ -441,7 +452,10 @@ function Header({ walletAddress, setWalletAddress }: HeaderProps) {
         </div>
         {walletAddress ? (
           <div className="flex items-center ml-4">
-            <span className="text-sm">{`${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)}`}</span>
+            <span className="text-sm">{`${walletAddress.slice(
+              0,
+              6
+            )}...${walletAddress.slice(-4)}`}</span>
             <button
               onClick={disconnectWallet}
               className="ml-2 px-2 py-1 bg-red-500 rounded-md text-sm hover:bg-red-600 transition-colors"
@@ -518,7 +532,7 @@ function SidebarItem({
   text,
   index,
   isActive,
-  onClick
+  onClick,
 }: {
   text: keyof typeof Icons;
   index: number;
@@ -532,12 +546,14 @@ function SidebarItem({
       )}
       <button
         onClick={onClick}
-        className={`pl-4 flex items-center capitalize w-full ${isActive ? "text-white" : "text-zinc-500 hover:text-white"
-          } transition-colors`}
+        className={`pl-4 flex items-center capitalize w-full ${
+          isActive ? "text-white" : "text-zinc-500 hover:text-white"
+        } transition-colors`}
       >
         <span
-          className={`w-8 h-8 grid place-items-center mr-2 rounded-md ${isActive ? "bg-fuchsia-600" : "bg-zinc-800"
-            }`}
+          className={`w-8 h-8 grid place-items-center mr-2 rounded-md ${
+            isActive ? "bg-fuchsia-600" : "bg-zinc-800"
+          }`}
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -558,51 +574,57 @@ function SidebarLeft() {
   const [activeSection, setActiveSection] = useState("trending");
   useEffect(() => {
     const handleScroll = () => {
-      const sections = ["trending", "market", "dashboard", "profile"];
+      const sections = [
+        "trending",
+        "market",
+        "dashboard",
+        "mysongs",
+        "profile",
+      ];
       const scrollPosition = window.scrollY + window.innerHeight;
       const documentHeight = document.documentElement.scrollHeight;
 
-      // Check if we're at the bottom of the page
-      if (scrollPosition >= documentHeight - 50) {
-        setActiveSection("profile"); // Highlight last section
-        return;
-      }
-
-      sections.forEach(section => {
+      // Check each section in order
+      for (const section of sections) {
         const element = document.getElementById(section);
         if (element) {
           const { offsetTop, offsetHeight } = element;
-          if (window.scrollY >= offsetTop && window.scrollY < offsetTop + offsetHeight) {
+          if (
+            window.scrollY >= offsetTop - 100 &&
+            window.scrollY < offsetTop + offsetHeight - 100
+          ) {
             setActiveSection(section);
+            break;
           }
         }
-      });
+      }
     };
 
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
   return (
     <div className="hidden lg:flex h-screen flex-col justify-between w-48 fixed left-0 top-0 bottom-0 pt-24">
       <ul className="space-y-8">
-        {["trending", "market", "dashboard", "profile"].map((key, index) => (
-          <SidebarItem
-            key={key}
-            text={key as keyof typeof Icons}
-            index={index}
-            isActive={activeSection === key}
-            onClick={() => {
-              const element = document.getElementById(key);
-              element?.scrollIntoView({ behavior: 'smooth' });
-            }}
-          />
-        ))}
+        {["trending", "market", "dashboard", "mysongs", "profile"].map(
+          (key, index) => (
+            <SidebarItem
+              key={key}
+              text={key as keyof typeof Icons}
+              index={index}
+              isActive={activeSection === key}
+              onClick={() => {
+                const element = document.getElementById(key);
+                element?.scrollIntoView({ behavior: "smooth" });
+              }}
+            />
+          )
+        )}
       </ul>
-
     </div>
   );
 }
-
 
 // export default function MainBody() {
 //   return (
@@ -643,14 +665,27 @@ export default function MainBody() {
       <SidebarLeft />
       <div className="w-48 hidden lg:block shrink-0" />
       <div className="flex-1 flex flex-col">
-        <Header walletAddress={walletAddress} setWalletAddress={setWalletAddress} />
+        <Header
+          walletAddress={walletAddress}
+          setWalletAddress={setWalletAddress}
+        />
         <div className="flex flex-1">
-
           <div className="grow">
-            <div id="trending"><Content /></div>
-            <div id="market"><Items walletAddress={walletAddress} /></div>
-            <div id="dashboard"><ArtistDashboard onUpload={handleAction} /></div>
-            <div id="profile"><ProfileSection /></div>
+            <div id="trending">
+              <Content />
+            </div>
+            <div id="market">
+              <Items walletAddress={walletAddress} />
+            </div>
+            <div id="dashboard">
+              <ArtistDashboard onUpload={handleAction} />
+            </div>
+            <div id="mysongs">
+              <MySongs />
+            </div>
+            <div id="profile">
+              <ProfileSection />
+            </div>
           </div>
           <SidebarRight />
         </div>
@@ -661,8 +696,6 @@ export default function MainBody() {
         onSubmit={handleUpload}
         walletAddress={walletAddress}
       />
-
     </div>
   );
 }
-
