@@ -38,19 +38,18 @@ export class MusicMarketplaceSDK {
   }
 
   // Song Management
-  async createSong(
+  async createAndListSong(
     account: AptosAccount,
     name: string,
     mp3Url: string,
     thumbnailUrl: string,
-    price: number,
-    buyable: boolean
+    price: number
   ): Promise<string> {
     const payload = {
       type: "entry_function_payload",
-      function: `${this.moduleAddress}::music_marketplace::create_song`,
+      function: `${this.moduleAddress}::music_marketplace::create_and_list_song`,
       type_arguments: [],
-      arguments: [name, mp3Url, thumbnailUrl, price, buyable]
+      arguments: [name, mp3Url, thumbnailUrl, price]
     };
 
     return await this.submitTransaction(account, payload);
@@ -85,20 +84,20 @@ export class MusicMarketplaceSDK {
     return await this.submitTransaction(account, payload);
   }
 
-  async toggleBuyable(
-    account: AptosAccount,
-    songObjectId: string,
-    buyable: boolean
-  ): Promise<string> {
-    const payload = {
-      type: "entry_function_payload",
-      function: `${this.moduleAddress}::music_marketplace::toggle_buyable`,
-      type_arguments: [],
-      arguments: [songObjectId, buyable]
-    };
+  // async toggleBuyable(
+  //   account: AptosAccount,
+  //   songObjectId: string,
+  //   buyable: boolean
+  // ): Promise<string> {
+  //   const payload = {
+  //     type: "entry_function_payload",
+  //     function: `${this.moduleAddress}::music_marketplace::toggle_buyable`,
+  //     type_arguments: [],
+  //     arguments: [songObjectId, buyable]
+  //   };
 
-    return await this.submitTransaction(account, payload);
-  }
+  //   return await this.submitTransaction(account, payload);
+  // }
 
   async updateSongPrice(
     account: AptosAccount,
@@ -144,18 +143,26 @@ export class MusicMarketplaceSDK {
     return await this.submitTransaction(account, payload);
   }
 
-  // Query Functions
   async getSongData(songObjectId: string): Promise<SongData> {
     try {
       const resource = await this.client.getAccountResource(
         songObjectId,
         `${this.moduleAddress}::music_marketplace::SongNFT`
       );
-      return resource.data as SongData;
+      const data = resource.data as any;
+      return {
+        name: data.name,
+        artist_address: data.artist_address,
+        owner_address: data.owner_address,
+        mp3_url: data.mp3_url,
+        thumbnail_url: data.thumbnail_url,
+        buyable: data.buyable
+      };
     } catch (error) {
       throw new Error(`Failed to fetch song data: ${error}`);
     }
   }
+
 
   async getUserSongs(userAddress: string): Promise<string[]> {
     try {
@@ -180,15 +187,29 @@ export class MusicMarketplaceSDK {
       return [];
     }
   }
-
   async getListedSongs(): Promise<ListedSong[]> {
     try {
-      const resource = await this.client.getAccountResource(
+      const marketplaceResource = await this.client.getAccountResource(
         this.moduleAddress,
         `${this.moduleAddress}::music_marketplace::Marketplace`
       );
-      return (resource.data as any).listings;
-    } catch {
+
+      console.log("Raw marketplace data:", marketplaceResource.data);
+      // Access the inner vector data structure
+      const listings = (marketplaceResource.data as any).listings.inner.data;
+
+      if (!Array.isArray(listings)) {
+        console.log("Listings structure:", listings);
+        return [];
+      }
+
+      return listings.map((listing: any) => ({
+        song: listing.song,
+        price: Number(listing.price),
+        seller: listing.seller
+      }));
+    } catch (error) {
+      console.log("Error fetching listings:", error);
       return [];
     }
   }
@@ -227,7 +248,7 @@ interface SongData {
 }
 
 interface ListedSong {
-  song_id: string;
+  song: string;
   price: number;
   seller: string;
 }
@@ -235,25 +256,40 @@ interface ListedSong {
 // Usage Examples
 export class MusicMarketplaceExamples {
   static async runExamples() {
+    const MODULE_ADDRESS = "0x6a2e8e921ba90f18d0ea667c4d1d77d8736c38a815c6cea61821a57fd56ace91";
+    const NODE_URL = "https://fullnode.devnet.aptoslabs.com/v1";
+    const FAUCET_URL = "https://faucet.devnet.aptoslabs.com";
+    const VC_COIN_TYPE = `${MODULE_ADDRESS}::vc_coin::VCCoin`;
+
+
     // Initialize SDK
     const sdk = new MusicMarketplaceSDK(
-      'https://fullnode.devnet.aptoslabs.com/v1',
-      '0x1234', // Your module address
-      '0x1::vibechain::VCCoin' // Your VC coin type
+      NODE_URL,
+      MODULE_ADDRESS,
+      VC_COIN_TYPE
     );
 
     // Create new account
     const account = new AptosAccount();
-    await sdk.setupNewAccount(account);
+    console.log("New account address:", account.address().hex());
 
+    const faucetClient = new FaucetClient(NODE_URL, FAUCET_URL);
+    try {
+      await faucetClient.fundAccount(account.address(), 100000000);
+      console.log("Successfully funded account");
+    } catch (error) {
+      console.error("Failed to fund account:", error);
+      return;
+    }
+    await sdk.setupNewAccount(account);
+    console.log("Account setup complete");
     // Create a song
-    const createTxn = await sdk.createSong(
+    const createTxn = await sdk.createAndListSong(
       account,
       "My First Song",
       "https://ipfs.io/ipfs/song.mp3",
       "https://ipfs.io/ipfs/thumbnail.jpg",
-      1000, // 1000 VC coins
-      true // buyable
+      1000 // 1000 VC coin
     );
     console.log("Created song:", createTxn);
 
@@ -271,7 +307,8 @@ export class MusicMarketplaceExamples {
       console.log("Listed song:", listTxn);
     }
 
-    // Get all listed songs
+    // After creating the song
+    await new Promise(resolve => setTimeout(resolve, 2000)); // 2 second delay
     const listedSongs = await sdk.getListedSongs();
     console.log("Listed songs:", listedSongs);
 
@@ -279,7 +316,7 @@ export class MusicMarketplaceExamples {
     if (listedSongs.length > 0) {
       const purchaseTxn = await sdk.purchaseSong(
         account,
-        listedSongs[0].song_id
+        listedSongs[0].song
       );
       console.log("Purchased song:", purchaseTxn);
     }
@@ -298,3 +335,4 @@ export class MusicMarketplaceExamples {
     console.log("VC balance:", balance);
   }
 }
+export default MusicMarketplaceSDK;
