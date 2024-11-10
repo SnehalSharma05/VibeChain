@@ -1,16 +1,31 @@
 import React, { useRef, useState, useEffect } from "react";
-import { PetraWallet } from 'petra-plugin-wallet-adapter';
 import Countdown from "react-countdown";
+import {
+  getArtistStats,
+  getSonglist,
+  getMySongs,
+  getBuyableSongs,
+} from "../songListManager";
 // import { WalletSelector } from "./WalletSelector";
-import "./UserDashboard.css"; // Create this file
+import "./Items";
 import { UploadModal } from "./UploadModal";
 import { ArtistDashboard } from "./ArtistDashboard";
 import { ProfileSection } from "./ProfileSection";
+import MySongs from "./MySongs";
+import { LoadingScreen } from "./LoadingScreen";
+import ParticleBanner from "./Header";
+import AllSongs from "./AllSongs";
 declare global {
   interface Window {
     petra: any;
   }
 }
+export let userAddress: string = "";
+
+export const setUserAddress = (address: string) => {
+  userAddress = address;
+};
+
 // Add styled components for better organization
 const DashboardContainer = {
   height: "100vh",
@@ -25,10 +40,10 @@ const SidebarStyles = {
 };
 
 const getAptosWallet = () => {
-  if ('aptos' in window) {
+  if ("aptos" in window) {
     return window.aptos;
   } else {
-    window.open('https://petra.app/', `_blank`);
+    return;
   }
 };
 const Icons = {
@@ -55,6 +70,13 @@ const Icons = {
   collection: () => (
     <path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z" />
   ),
+  mysongs: () => (
+    <path
+      d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  ),
   wallet: () => (
     <>
       <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z" />
@@ -65,10 +87,10 @@ const Icons = {
       />
     </>
   ),
-  settings: () => (
+  profile: () => (
     <path
       fillRule="evenodd"
-      d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z"
+      d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
       clipRule="evenodd"
     />
   ),
@@ -163,23 +185,51 @@ const artists = [
 ];
 const App = () => {
   const [walletAddress, setWalletAddress] = useState<string>("");
+  const [buyableSongs, setBuyableSongs] = useState([]);
+  const connectWallet = async () => {
+    try {
+      const petra = window.petra;
+      if (petra) {
+        const response = await petra.connect();
+        setWalletAddress(response.address);
+        localStorage.setItem("walletAddress", response.address);
+
+        const fetchedBuyableSongs = await getBuyableSongs(response.address);
+        setBuyableSongs(fetchedBuyableSongs);
+      }
+    } catch (error) {
+      console.log("Petra wallet connection error:", error);
+    }
+  };
+  useEffect(() => {
+    const fetchBuyableSongs = async () => {
+      if (walletAddress) {
+        const songs = await getBuyableSongs(walletAddress);
+        setBuyableSongs(songs);
+      }
+    };
+    fetchBuyableSongs();
+  }, [walletAddress]);
 
   return (
     <>
       <SidebarLeft />
-      <Header walletAddress={walletAddress} setWalletAddress={setWalletAddress} />
+      <Header
+        walletAddress={walletAddress}
+        setWalletAddress={setWalletAddress}
+        connectWallet={connectWallet}
+      />
       <div className="flex flex-col md:flex-row">
         <div className="w-48 hidden lg:block shrink-0" />
-        <div className=" grow ">
-          <Content />
-          <Items walletAddress={walletAddress} />
+        <div className="grow">
+          <Content buyableSongs={buyableSongs} />
+          <Items walletAddress={walletAddress} songs={buyableSongs} />
         </div>
         <SidebarRight />
       </div>
     </>
   );
 };
-
 
 function SidebarRight() {
   return (
@@ -212,8 +262,7 @@ function SidebarRight() {
             you can buy a collection of artwork with ethereum very easy and
             simple
           </p>
-          <div className="bg-white w-full rounded-md h-12 text-gray-900 font-semibold mt-2">
-          </div>
+          <div className="bg-white w-full rounded-md h-12 text-gray-900 font-semibold mt-2"></div>
         </div>
         <div className="absolute left-0 right-0 top-0 z-0">
           <svg
@@ -282,7 +331,13 @@ function SidebarRight() {
   );
 }
 
-function Items({ walletAddress }: { walletAddress: string }) {
+function Items({
+  walletAddress,
+  songs,
+}: {
+  walletAddress: string;
+  songs: any[];
+}) {
   const handleButtonClick = (e: React.MouseEvent, action: string) => {
     if (!walletAddress) {
       e.preventDefault();
@@ -323,7 +378,10 @@ function Items({ walletAddress }: { walletAddress: string }) {
             </div>
             <div className="flex mt-2">
               <div className="p-3 w-1/2">
-                <button onClick={(e) => handleButtonClick(e, 'play')} className="bg-gradient-to-tr from-fuchsia-600 to-violet-600  w-full h-12 rounded-md font-semibold">
+                <button
+                  onClick={(e) => handleButtonClick(e, "play")}
+                  className="bg-gradient-to-tr from-fuchsia-600 to-violet-600  w-full h-12 rounded-md font-semibold"
+                >
                   Play Song
                 </button>
               </div>
@@ -346,16 +404,16 @@ function ArtworkSelector({ text, index }: { text: string; index: number }) {
   return (
     <li className="">
       <button
-        className={` ${index ? "text-zinc-500" : "text-fuchsia-600 underline font-bold"
-          }`}
+        className={` ${
+          index ? "text-zinc-500" : "text-fuchsia-600 underline font-bold"
+        }`}
       >
         {text}
       </button>
     </li>
   );
 }
-
-function Content() {
+function Content({ buyableSongs }: ContentProps) {
   return (
     <div className="">
       <h1 className="text-2xl font-bold px-3 mt-3">Music Hub</h1>
@@ -388,36 +446,66 @@ function Content() {
           )}
         </ul>
       </div>
+
+      {/* Display buyable songs */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-4">
+        {buyableSongs.map((song) => (
+          <div key={song.ipfs_url} className="bg-zinc-800 rounded-lg p-4">
+            <img
+              src={song.image_url}
+              alt={song.name}
+              className="w-full h-48 object-cover rounded-lg"
+            />
+            <h3 className="text-lg font-bold mt-2">{song.name}</h3>
+            <p className="text-zinc-400">{song.genre}</p>
+            <p className="text-green-500">{song.price} VC</p>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
-
 interface HeaderProps {
   walletAddress: string;
   setWalletAddress: (address: string) => void;
+  connectWallet: () => Promise<void>;
 }
 
-function Header({ walletAddress, setWalletAddress }: HeaderProps) {
+interface ContentProps {
+  buyableSongs: any[];
+}
 
-  const connectWallet = async () => {
-    try {
-      const petra = window.petra;
-      if (petra) {
-        const response = await petra.connect();
-        setWalletAddress(response.address);
-        console.log("Connected account address:", response.address);
-      } else {
-        window.open('https://petra.app/', '_blank');
-      }
-    } catch (error) {
-      console.log("Petra wallet connection error:", error);
+interface ArtistStats {
+  totalPlays: number;
+  totalEarnings: number;
+  monthlyPlays: number;
+  monthlyEarnings: number;
+  topSongs: Array<{
+    title: string;
+    plays: number;
+    earnings: number;
+  }>;
+}
+
+function Header({
+  walletAddress,
+  setWalletAddress,
+  connectWallet,
+}: HeaderProps) {
+  useEffect(() => {
+    // Check local storage on component mount
+    const savedAddress = localStorage.getItem("walletAddress");
+    if (savedAddress) {
+      setWalletAddress(savedAddress);
     }
-  };
+  }, []);
 
   const disconnectWallet = async () => {
     try {
       await window.petra.disconnect();
       setWalletAddress("");
+      // Clear from local storage
+      localStorage.removeItem("walletAddress");
       console.log("Wallet disconnected");
     } catch (error) {
       console.log("Disconnect error:", error);
@@ -441,7 +529,10 @@ function Header({ walletAddress, setWalletAddress }: HeaderProps) {
         </div>
         {walletAddress ? (
           <div className="flex items-center ml-4">
-            <span className="text-sm">{`${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)}`}</span>
+            <span className="text-sm">{`${walletAddress.slice(
+              0,
+              6
+            )}...${walletAddress.slice(-4)}`}</span>
             <button
               onClick={disconnectWallet}
               className="ml-2 px-2 py-1 bg-red-500 rounded-md text-sm hover:bg-red-600 transition-colors"
@@ -518,7 +609,7 @@ function SidebarItem({
   text,
   index,
   isActive,
-  onClick
+  onClick,
 }: {
   text: keyof typeof Icons;
   index: number;
@@ -532,12 +623,14 @@ function SidebarItem({
       )}
       <button
         onClick={onClick}
-        className={`pl-4 flex items-center capitalize w-full ${isActive ? "text-white" : "text-zinc-500 hover:text-white"
-          } transition-colors`}
+        className={`pl-4 flex items-center capitalize w-full ${
+          isActive ? "text-white" : "text-zinc-500 hover:text-white"
+        } transition-colors`}
       >
         <span
-          className={`w-8 h-8 grid place-items-center mr-2 rounded-md ${isActive ? "bg-fuchsia-600" : "bg-zinc-800"
-            }`}
+          className={`w-8 h-8 grid place-items-center mr-2 rounded-md ${
+            isActive ? "bg-fuchsia-600" : "bg-zinc-800"
+          }`}
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -556,61 +649,59 @@ function SidebarItem({
 
 function SidebarLeft() {
   const [activeSection, setActiveSection] = useState("trending");
-
   useEffect(() => {
     const handleScroll = () => {
-      const sections = ["trending", "market", "dashboard", "settings"];
-      const scrollPosition = window.scrollY;
+      const sections = [
+        "trending",
+        "market",
+        "dashboard",
+        "mysongs",
+        "profile",
+      ];
+      const scrollPosition = window.scrollY + window.innerHeight;
+      const documentHeight = document.documentElement.scrollHeight;
 
-      sections.forEach(section => {
+      // Check each section in order
+      for (const section of sections) {
         const element = document.getElementById(section);
         if (element) {
           const { offsetTop, offsetHeight } = element;
-          if (scrollPosition >= offsetTop && scrollPosition < offsetTop + offsetHeight) {
+          if (
+            window.scrollY >= offsetTop - 100 &&
+            window.scrollY < offsetTop + offsetHeight - 100
+          ) {
             setActiveSection(section);
+            break;
           }
         }
-      });
+      }
     };
 
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   return (
     <div className="hidden lg:flex h-screen flex-col justify-between w-48 fixed left-0 top-0 bottom-0 pt-24">
       <ul className="space-y-8">
-        {["trending", "market", "dashboard", "settings"].map((key, index) => (
-          <SidebarItem
-            key={key}
-            text={key as keyof typeof Icons}
-            index={index}
-            isActive={activeSection === key}
-            onClick={() => {
-              const element = document.getElementById(key);
-              element?.scrollIntoView({ behavior: 'smooth' });
-            }}
-          />
-        ))}
+        {["trending", "market", "dashboard", "mysongs", "profile"].map(
+          (key, index) => (
+            <SidebarItem
+              key={key}
+              text={key as keyof typeof Icons}
+              index={index}
+              isActive={activeSection === key}
+              onClick={() => {
+                const element = document.getElementById(key);
+                element?.scrollIntoView({ behavior: "smooth" });
+              }}
+            />
+          )
+        )}
       </ul>
-      <div className="pb-5 px-4">
-        <hr className="mb-5 text-zinc-700" />
-        <button
-          onClick={() => document.getElementById('profile')?.scrollIntoView({ behavior: 'smooth' })}
-          className="py-2 flex items-center text-zinc-500 hover:text-white transition-colors w-full"
-        >
-          <span className="bg-zinc-800 w-8 h-8 grid place-items-center mr-2 rounded-md">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
-            </svg>
-          </span>
-          Profile
-        </button>
-      </div>
     </div>
   );
 }
-
 
 // export default function MainBody() {
 //   return (
@@ -630,8 +721,33 @@ function SidebarLeft() {
 // }
 
 export default function MainBody() {
+  const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [walletAddress, setWalletAddress] = useState<string>("");
+  const [mySongs, setMySongs] = useState([]);
+  const [allSongs, setAllSongs] = useState([]);
+  const [buyableSongs, setBuyableSongs] = useState([]);
+  const [artistStats, setArtistStats] = useState<ArtistStats>({
+    totalPlays: 0,
+    totalEarnings: 0,
+    monthlyPlays: 0,
+    monthlyEarnings: 0,
+    topSongs: [],
+  });
+
+  const fetchUserData = async (address: string) => {
+    const [fetchedMySongs, fetchedBuyableSongs, fetchedArtistStats] =
+      await Promise.all([
+        getMySongs(address),
+        getBuyableSongs(address),
+        getArtistStats(address),
+        getSonglist(),
+      ]);
+
+    setMySongs(fetchedMySongs);
+    setBuyableSongs(fetchedBuyableSongs);
+    setArtistStats(fetchedArtistStats);
+  };
 
   const handleAction = () => {
     if (!walletAddress) {
@@ -641,37 +757,88 @@ export default function MainBody() {
     setIsModalOpen(true);
   };
 
-  const handleUpload = (data: { name: string; price: string }) => {
+  const handleUpload = async (data: { name: string; price: string }) => {
     console.log("Upload track:", data);
     setIsModalOpen(false);
+    await fetchUserData(walletAddress);
   };
 
+  const connectWallet = async () => {
+    try {
+      const petra = window.petra;
+      if (petra) {
+        const response = await petra.connect();
+        const address = response.address;
+        setWalletAddress(address);
+        localStorage.setItem("walletAddress", address);
+        await fetchUserData(address);
+      } else {
+        window.open("https://petra.app/", "_blank");
+      }
+    } catch (error) {
+      console.log("Petra wallet connection error:", error);
+    }
+  };
+
+  useEffect(() => {
+    const savedAddress = localStorage.getItem("walletAddress");
+    if (savedAddress) {
+      setWalletAddress(savedAddress);
+      fetchUserData(savedAddress);
+    }
+
+    // Simulate loading time
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 2000);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (isLoading) {
+    return <LoadingScreen />;
+  }
+
   return (
-    <div className="min-h-screen bg-zinc-900 flex">
-      <SidebarLeft />
-      <div className="w-48 hidden lg:block shrink-0" />
-      <div className="flex-1 flex flex-col">
-        <Header walletAddress={walletAddress} setWalletAddress={setWalletAddress} />
-        <div className="flex flex-1">
-
-          <div className="grow">
-            <div id="trending"><Content /></div>
-            <div id="market"><Items walletAddress={walletAddress} /></div>
-            <div id="dashboard"><ArtistDashboard onUpload={handleAction} /></div>
-            <div id="settings">{/* Your settings component */}</div>
-            <div id="profile"><ProfileSection /></div>
+    <>
+      <ParticleBanner />
+      <div className="min-h-screen bg-zinc-900 flex">
+        <SidebarLeft />
+        <div className="w-48 hidden lg:block shrink-0" />
+        <div className="flex-1 flex flex-col">
+          <Header
+            walletAddress={walletAddress}
+            setWalletAddress={setWalletAddress}
+            connectWallet={connectWallet}
+          />
+          <div className="flex flex-1">
+            <div className="grow">
+              <div id="trending">
+                <AllSongs />
+              </div>
+              <div id="market">
+                <Items walletAddress={walletAddress} songs={buyableSongs} />
+              </div>
+              <div id="dashboard">
+                <ArtistDashboard stats={artistStats} onUpload={handleAction} />
+              </div>
+              <div id="mysongs">
+                <MySongs songs={mySongs} />
+              </div>
+              <div id="profile">
+                <ProfileSection />
+              </div>
+            </div>
+            <SidebarRight />
           </div>
-          <SidebarRight />
         </div>
+        <UploadModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          onSubmit={handleUpload}
+          walletAddress={walletAddress}
+        />
       </div>
-      <UploadModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onSubmit={handleUpload}
-        walletAddress={walletAddress}
-      />
-
-    </div>
+    </>
   );
 }
-

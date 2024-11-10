@@ -1,0 +1,13 @@
+{ 
+    "lastMusicId": 0,
+    "totalSongs": 0,
+    "artists": [],
+    "genres": {
+      "electronic": 0,
+      "rock": 0,
+      "jazz": 0,
+      "classical": 0,
+      "hip-hop": 0,
+      "ambient": 0
+    }
+}
