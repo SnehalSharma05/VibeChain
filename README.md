@@ -1,46 +1,78 @@
-# Getting Started with Create React App
+# VibeChain: Decentralized Music Streaming Platform
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A blockchain-based music streaming platform built on Aptos that revolutionizes music ownership and streaming through NFTs. Artists can tokenize their music, while listeners can both stream and trade music NFTs in a decentralized ecosystem.
 
-## Available Scripts
+## Features
 
-In the project directory, you can run:
+- **NFT-Based Music**: Each song is minted as a unique NFT, stored on IPFS
+- **Dual Usage Model**: 
+  - Buy/Sell music NFTs for ownership
+  - Pay-per-listen streaming option for casual listeners
+- **Artist Benefits**:
+  - Direct monetization through NFT sales
+  - Royalties from secondary market trades
+  - Streaming revenue share
+- **User Features**:
+  - Music NFT marketplace
+  - Streaming interface
+  - Personal collection management
+  - Integrated with Petra wallet
 
-### `npm start`
+## Technology Stack
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+- **Blockchain**: Aptos
+- **Smart Contracts**: Move
+- **Storage**: IPFS
+- **Frontend**: React Typescript, TailwindCSS
+- **Backend**: Express.js
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+## Prerequisites
 
-### `npm test`
+- Aptos CLI
+- Move compiler
+- IPFS node (for development)
+- Petra wallet
+## Smart Contract Architecture
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+### Core Contracts - Marketplace.move
+   - NFT listing and trading
+   - Price management
+   - Royalty distribution
 
-### `npm run build`
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+## API Reference
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+### NFT Operations
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+- `GET /api/nfts`: List all available music NFTs
+- `GET /api/nfts/{id}`: Get specific NFT details
+- `POST /api/nfts/mint`: Mint new music NFT
 
-### `npm run eject`
+### Streaming Operations
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+- `POST /api/stream/start`: Start streaming session
+- `POST /api/stream/end`: End streaming session
+- `GET /api/stream/history`: Get streaming history
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+## Development
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+```bash
+# Run local node
+aptos node run-local-testnet
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+# Deploy contracts
+aptos move compile
+aptos move publish
 
-## Learn More
+```
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+## Security Considerations
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+- NFT ownership verification
+- Payment processing security
+- Access control mechanisms
+- IPFS content persistence
+- Smart contract auditing
+
+## Demo Video
+https://youtu.be/q7EE08Q50u4
