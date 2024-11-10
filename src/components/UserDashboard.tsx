@@ -114,7 +114,7 @@ const items = [
   {
     key: "2",
     artist: 2,
-    image: "https://i.scdn.co/image/ab6761610000e5ebd0d5560f6b2ebe39a6d20704",
+    image: "https://wallpapercave.com/wp/wp9964003.jpg", // Polyphia's Playing God HD banner
     price: "1.5",
     title: "Playing God",
     timeLeft: 12873491,
@@ -122,8 +122,7 @@ const items = [
   {
     key: "3",
     artist: 0,
-    image:
-      "https://www.entertainmentvine.com/wp-content/uploads/2014/05/MnM-Banner_534aed4d7c3921c21db8f28e4c41f151.jpg",
+    image: "https://wallpapercave.com/wp/wp7291894.jpg", // High-quality Eminem concert banner
     price: "2.0",
     title: "Eminem",
     timeLeft: 84720185,
@@ -131,7 +130,7 @@ const items = [
   {
     key: "4",
     artist: 3,
-    image: "/music-covers/track4.jpg",
+    image: "https://wallpapercave.com/wp/wp11810627.jpg", // Electronic music visualizer banner
     price: "1.2",
     title: "Crypto Symphony",
     timeLeft: 43826185,
@@ -139,7 +138,7 @@ const items = [
   {
     key: "5",
     artist: 2,
-    image: "/music-covers/track5.jpg",
+    image: "https://wallpapercave.com/wp/wp4666508.jpg", // Abstract music visualization
     price: "0.5",
     title: "Web3 Waves",
     timeLeft: 134627,
@@ -147,7 +146,7 @@ const items = [
   {
     key: "6",
     artist: 1,
-    image: "/music-covers/track6.jpg",
+    image: "https://wallpapercave.com/wp/wp3164362.jpg", // Atmospheric music studio banner
     price: "1.0",
     title: "Decentralized Dreams",
     timeLeft: 12008745,
@@ -168,19 +167,28 @@ const artists = [
       "https://preview.redd.it/still-versions-of-my-animated-wallpapers-v0-zryfy6nbfuy91.jpg?width=640&crop=smart&auto=webp&s=d85ad66ffd9a0c989b1f2b969bb3b403795ba7e0",
   },
   {
-    name: "Web3 Harmony",
-    handler: "@w3harmony",
-    image: "/artist-profiles/artist3.jpg",
-  },
-  {
     name: "Chain Melody",
     handler: "@chainmelody",
-    image: "/artist-profiles/artist4.jpg",
+    // Different style for variety
+    image: "https://api.dicebear.com/7.x/personas/svg?seed=ChainMelody",
   },
   {
     name: "Digital Sound",
     handler: "@digitalsound",
-    image: "/artist-profiles/artist5.jpg",
+    // Another style variation
+    image: "https://api.dicebear.com/7.x/avataaars/svg?seed=DigitalSound",
+  },
+  {
+    name: "Crypto Beat",
+    handler: "@cryptobeat",
+    // Pixel art style
+    image: "https://api.dicebear.com/7.x/pixel-art/svg?seed=CryptoBeat",
+  },
+  {
+    name: "Block Notes",
+    handler: "@blocknotes",
+    // Bottts style (robot avatars)
+    image: "https://api.dicebear.com/7.x/bottts/svg?seed=BlockNotes",
   },
 ];
 const App = () => {
@@ -253,80 +261,6 @@ function SidebarRight() {
           </li>
         ))}
       </ul>
-      <div className="w-full rounded-md bg-gradient-to-tr from-fuchsia-600 to-violet-600 mt-3 p-3 relative overflow-hidden">
-        <div className="z-10 relative">
-          <h2 className="text-white font-semibold">
-            Buy a collection with ethereum
-          </h2>
-          <p className="text-white/50 text-sm mt-1">
-            you can buy a collection of artwork with ethereum very easy and
-            simple
-          </p>
-          <div className="bg-white w-full rounded-md h-12 text-gray-900 font-semibold mt-2"></div>
-        </div>
-        <div className="absolute left-0 right-0 top-0 z-0">
-          <svg
-            className="w-full"
-            viewBox="0 0 679 360"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <g clipPath="url(#clip0_2_2)">
-              <path
-                d="M102.854 22L159.666 116.276L102.854 90.4544V22Z"
-                fill="#8A92B2"
-                fillOpacity="0.35"
-              />
-              <path
-                d="M102.854 90.4544L159.666 116.276L102.854 149.866V90.4544Z"
-                fill="#62688F"
-                fillOpacity="0.35"
-              />
-              <path
-                d="M46.0315 116.276L102.854 22V90.4544L46.0315 116.276Z"
-                fill="#62688F"
-                fillOpacity="0.35"
-              />
-              <path
-                d="M102.854 149.866L46.0315 116.276L102.854 90.4544V149.866Z"
-                fill="#454A75"
-                fillOpacity="0.35"
-              />
-              <path
-                d="M159.666 127.055L102.854 207.12V160.625L159.666 127.055Z"
-                fill="#8A92B2"
-                fillOpacity="0.35"
-              />
-              <path
-                d="M102.854 160.625V207.12L46 127.055L102.854 160.625Z"
-                fill="#62688F"
-                fillOpacity="0.35"
-              />
-              <circle
-                cx="552"
-                cy="35"
-                r="132"
-                stroke="white"
-                strokeOpacity="0.1"
-                strokeWidth="10"
-              />
-              <circle
-                cx="640"
-                cy="115"
-                r="132"
-                stroke="white"
-                strokeOpacity="0.1"
-                strokeWidth="10"
-              />
-            </g>
-            <defs>
-              <clipPath id="clip0_2_2">
-                <rect width="679" height="360" fill="white" />
-              </clipPath>
-            </defs>
-          </svg>
-        </div>
-      </div>
     </div>
   );
 }
@@ -349,7 +283,7 @@ function Items({
   return (
     <ul className="p-1.5 flex flex-wrap">
       {items.map(({ key, artist, image, price, title }) => (
-        <li className="w-full lg:w-1/2 xl:w-1/3  p-1.5" key={key}>
+        <li className="w-full lg:w-1/2 xl:w-1/3 p-1.5" key={key}>
           <a
             className="block bg-zinc-800 rounded-md w-full overflow-hidden pb-4 shadow-lg"
             href="#items"
@@ -358,10 +292,23 @@ function Items({
               className="w-full h-40 bg-center bg-cover relative"
               style={{ backgroundImage: `url(${image})` }}
             >
-              <div className="absolute left-1/2 -translate-x-1/2 bottom-2  w-5/6 bg-white rounded-md flex items-center bg-opacity-30 backdrop-blur-md">
-                <div className="w-full p-3">
-                  <h3 className="font-semibold">Current Price</h3>
-                  <div className="">{price} ETH</div>
+              <div className="absolute left-1/2 -translate-x-1/2 bottom-2 w-5/6 bg-white rounded-md flex items-center bg-opacity-30 backdrop-blur-md">
+                <div className="w-full p-3 flex justify-between items-center">
+                  <div>
+                    <h3 className="font-semibold">Current Price</h3>
+                    <div className="">{price} VC</div>
+                  </div>
+                  <div className="text-right">
+                    <h3 className="font-semibold">Total Plays</h3>
+                    <div className="">
+                      {key === "1" && "2.1M"}
+                      {key === "2" && "856K"}
+                      {key === "3" && "4.2M"}
+                      {key === "4" && "342K"}
+                      {key === "5" && "127K"}
+                      {key === "6" && "731K"}
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -372,7 +319,7 @@ function Items({
                 className="w-10 h-10 rounded-full"
                 alt="item-owner"
               />
-              <span className=" ml-2 text-zinc-400">
+              <span className="ml-2 text-zinc-400">
                 {artists[artist].handler}
               </span>
             </div>
@@ -380,15 +327,15 @@ function Items({
               <div className="p-3 w-1/2">
                 <button
                   onClick={(e) => handleButtonClick(e, "play")}
-                  className="bg-gradient-to-tr from-fuchsia-600 to-violet-600  w-full h-12 rounded-md font-semibold"
+                  className="bg-gradient-to-tr from-fuchsia-600 to-violet-600 w-full h-12 rounded-md font-semibold"
                 >
-                  Play Song
+                  Buy Song
                 </button>
               </div>
               <div className="p-3 w-1/2">
-                <button className="bg-gradient-to-tr from-fuchsia-600 to-violet-600  w-full rounded-md font-semibold h-12 p-px">
+                <button className="bg-gradient-to-tr from-fuchsia-600 to-violet-600 w-full rounded-md font-semibold h-12 p-px">
                   <div className="bg-zinc-800 w-full h-full rounded-md grid place-items-center">
-                    View Artist
+                    View Song History
                   </div>
                 </button>
               </div>

@@ -32,8 +32,10 @@ export default function MySongs({ songs }: { songs: any[] }) {
               >
                 <div className="absolute left-1/2 -translate-x-1/2 bottom-2 w-5/6 bg-white rounded-md flex items-center bg-opacity-30 backdrop-blur-md">
                   <div className="w-full p-3">
-                    <h3 className="font-semibold">Current Price</h3>
-                    <div className="">{song.price} VC</div>
+                    <h3 className="font-semibold">Value {song.price}</h3>
+                    <h3 className="font-semibold">
+                      Price Per Play {(song.price * 0.0023).toFixed(4)}
+                    </h3>
                   </div>
                 </div>
               </div>
