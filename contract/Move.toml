@@ -6,4 +6,4 @@ version = "1.0.0"
 AptosFramework = { git = "https://github.com/aptos-labs/aptos-core.git", subdir = "aptos-move/framework/aptos-framework/", rev = "main" }
 
 [addresses]
-vibechain_addr = "0xe1bfa3409c18df4880b22966e58236bd897dc08ee458d7ba1ecc8f75af9a90de"
+vibechain_addr = "0x6a2e8e921ba90f18d0ea667c4d1d77d8736c38a815c6cea61821a57fd56ace91"
