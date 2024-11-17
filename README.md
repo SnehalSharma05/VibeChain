@@ -1,8 +1,10 @@
 # VibeChain: Decentralized Music Streaming Platform
 
-A blockchain-based music streaming platform built on Aptos that revolutionizes music ownership and streaming through NFTs. Artists can tokenize their music, while listeners can both stream and trade music NFTs in a decentralized ecosystem.
-## Demo Video
-https://youtu.be/q7EE08Q50u4
+A blockchain-based music streaming platform built on Aptos that revolutionizes music ownership and streaming through NFTs. Artists can tokenize their music, while listeners can both stream and trade music NFTs in Aptos Blockchain
+
+## The Vision The Idea
+https://youtu.be/ssoI6hjrZO8?si=VACjB5tO0UK-qUsN
+
 ## Features
 
 - **NFT-Based Music**: Each song is minted as a unique NFT, stored on IPFS
@@ -73,3 +75,5 @@ aptos move publish
 - Payment processing security
 - Access control mechanisms
 - IPFS content persistence
+## Demo Video
+https://youtu.be/q7EE08Q50u4
