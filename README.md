@@ -4,6 +4,8 @@ A blockchain-based music streaming platform built on Aptos that revolutionizes m
 
 ## The Vision The Idea
 https://youtu.be/ssoI6hjrZO8?si=VACjB5tO0UK-qUsN
+## Demo Video
+https://youtu.be/q7EE08Q50u4
 
 ## Features
 
@@ -75,5 +77,4 @@ aptos move publish
 - Payment processing security
 - Access control mechanisms
 - IPFS content persistence
-## Demo Video
-https://youtu.be/q7EE08Q50u4
+
